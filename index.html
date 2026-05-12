@@ -559,34 +559,37 @@ function renderCartItems() {
 
 // ===================== ZAKAZ =====================
 function placeOrder() {
-  const phone = document.getElementById("phoneInput").value.trim();
-  const items = Object.values(cart);
+    const phone = document.getElementById("phoneInput").value.trim();
+    const items = Object.values(cart);
 
-  if (items.length === 0) {
-    alert("❗ Savat bo'sh! Avval mahsulot qo'shing.");
-    return;
-  }
-  if (!phone || phone.length < 9) {
-    alert("❗ Telefon raqamingizni kiriting!");
-    document.getElementById("phoneInput").focus();
-    return;
-  }
+    if (items.length === 0) {
+        alert("! Savat bo'sh! Avval mahsulot qo'shing.");
+        return;
+    }
 
-  const total = items.reduce((s, i) => s + i.price * i.qty, 0);
-  const orderData = {
-    phone,
-    items: items.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
-    total
-  };
+    if (!phone || phone.length < 9) {
+        alert("! Telefon raqamingizni kiriting!");
+        document.getElementById("phoneInput").focus();
+        return;
+    }
 
-  // Telegram Web App orqali yuborish
-  if (window.Telegram && window.Telegram.WebApp) {
-    window.Telegram.WebApp.sendData(JSON.stringify(orderData));
-  } else {
-    // Test uchun (brauzarda ochilganda)
-    console.log("Zakaz:", orderData);
-    showSuccess();
-  }
+    const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+
+    // Python kodingiz (data['items'], data['total'], data['phone']) kutayotgan format
+    const orderData = {
+        phone: phone,
+        total: total,
+        items: items.map(i => ({ name: i.name, qty: i.qty }))
+    };
+
+    // Telegram'ga yuborish
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.sendData(JSON.stringify(orderData));
+        window.Telegram.WebApp.close(); // Yuborgandan keyin oynani yopish
+    } else {
+        console.log("Brauzerda test:", orderData);
+        alert("Buyurtma yuborildi (Brauzer testi)");
+    }
 }
 
 function showSuccess() {
